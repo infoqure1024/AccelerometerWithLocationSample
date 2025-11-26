@@ -1,5 +1,5 @@
 import Geolocation from 'react-native-geolocation-service';
-import { accelerometer } from 'react-native-sensors';
+import { accelerometer, setUpdateIntervalForType, SensorTypes } from 'react-native-sensors';
 import { Subscription } from 'rxjs';
 import { StationaryDetector } from './utils/sensors';
 
@@ -10,6 +10,8 @@ export class LocationService {
 
   // GPSドリフト判定の速度閾値（m/s）
   private readonly GPS_DRIFT_SPEED_THRESHOLD = 0.3;
+  // 加速度センサーのサンプリング間隔（ms）
+  private readonly ACCELEROMETER_UPDATE_INTERVAL = 100; // 100ms = 10Hz
 
   constructor() {
     // 静止状態判定クラスのインスタンスを作成
@@ -26,6 +28,9 @@ export class LocationService {
    * 加速度センサーの監視を開始
    */
   private startAccelerometerWatching(): void {
+    // サンプリングレートを10Hz（100ms間隔）に設定
+    setUpdateIntervalForType(SensorTypes.accelerometer, this.ACCELEROMETER_UPDATE_INTERVAL);
+
     this.accelerometerSubscription = accelerometer.subscribe(({ x, y, z }) => {
       // StationaryDetectorで静止状態を判定
       const result = this.stationaryDetector.detectStationary(x, y, z);
